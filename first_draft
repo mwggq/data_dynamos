@@ -1,0 +1,79 @@
+import streamlit as st
+import os
+import json
+import uuid
+import google.generativeai as genai
+
+# api key
+API_KEY = "AIzaSyADTeEqdBNWDuVWCQBqncKZTmyNlzmCTsI"
+genai.configure(api_key=API_KEY)
+
+CHAT_HISTORY_FILE = "chat_history.json"
+
+if "page" not in st.session_state:
+    st.session_state.page = "welcome"
+if "chat_id" not in st.session_state:
+    st.session_state.chat_id = None
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+# loads chat hsitory
+def load_history():
+    if os.path.exists(CHAT_HISTORY_FILE):
+        with open(CHAT_HISTORY_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+# saves chat to history chats
+def save_chat(chat_id, content):
+    history = load_history()
+    history[chat_id] = content
+    with open(CHAT_HISTORY_FILE, "w") as f:
+        json.dump(history, f, indent=2)
+
+# geminimi model
+def call_gemini_api(user_text, user_image):
+    try:
+        model = genai.GenerativeModel("gemini-2.0-flash")  
+        input_parts = []
+
+        if user_text:
+            input_parts.append(user_text)
+        if user_image:
+            input_parts.append(user_image)  
+        
+        response = model.generate_content(input_parts)
+        return response.text.strip()
+    except Exception as e:
+        return f"Error calling Gemini API: {e}"
+
+# welcome page
+if st.session_state.page == "welcome":
+    st.title(" Data Dynamos AI")
+    st.markdown("This app analyzes cyber-related text or image input using an AI assistant.")
+    if st.button("Start New Chat"):
+        st.session_state.page = "main"
+        st.session_state.chat_id = str(uuid.uuid4())
+        st.session_state.history = []
+        st.rerun()
+    st.subheader(" Load Previous Chat")
+    history = load_history()
+    for chat_id in history:
+        if st.button(f"Open chat from {chat_id[:8]}"):
+            st.session_state.chat_id = chat_id
+            st.session_state.page = "main"
+            st.session_state.history = history[chat_id]
+            st.rerun()
+
+
+# main page
+if st.session_state.page == "main":
+    st.title("💬 AI Cyber Request Checker")
+    st.markdown("Enter a command or upload an image for analysis:")
+
+    # shistory
+    for idx, item in enumerate(st.session_state.history):
+        st.markdown(f"**You:** {item['user_input']}")
+        st.markdown(f"**AI:** {item['response']}")
+        st.markdown(f"**Feedback:** {item.get('feedback', 'None')}")
+        st.markdown("---")
