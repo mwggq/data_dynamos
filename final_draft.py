@@ -122,5 +122,4 @@ if st.session_state.page == "main":
     if back_clicked:
         st.session_state.page = "welcome"
         st.rerun()
-
  
