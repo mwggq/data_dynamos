@@ -1,0 +1,6 @@
+streamlit
+os
+json
+uuid
+google.generativeai
+datetime
