@@ -73,7 +73,7 @@ if st.session_state.page == "welcome":
         else:
             date_display = "Empty Chat"
 
-        if st.button(f"Open chat from {date_display}"):
+        if st.button(f"Open chat from {date_display}", key=f"btn_{chat_id}"):
             st.session_state.chat_id = chat_id
             st.session_state.page = "main"
             st.session_state.history = messages
